@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+
+# 虛擬環境
+venv/
+.env/
+ai_doc/
+Lib/
+Scripts/
+
+# VSCode
+.vscode/
