@@ -18,7 +18,12 @@ def reaf_docx(file_path: str) -> str:
         text += para.text + "\n"
     return text
 
-def chunk_text(text: str, chunk_size = 500, overlap = 100):
+def split_by_sentence(text: str):
+    sentences = re.split(r"[。！？\n]", text)
+    return [s.strip() for s in sentences if s.strip()]
+
+'''
+def chunk_text(text: str, chunk_size = 200, overlap = 50):
     chunks = []
     start = 0
 
@@ -29,6 +34,36 @@ def chunk_text(text: str, chunk_size = 500, overlap = 100):
 
         start += chunk_size - overlap
     return chunks
+'''
+def build_chunks(sentences, chunk_size=200, overlap=50):
+    chunks = []
+    current_chunk = ""
+
+    for sentence in sentences:
+        if len(current_chunk) + len(sentence) < chunk_size:
+            current_chunk += sentence + " "
+        else:
+            chunks.append(current_chunk.strip())
+
+            # overlap（保留上下文）
+            current_chunk = current_chunk[-overlap:] + sentence + " "
+
+    if current_chunk:
+        chunks.append(current_chunk.strip())
+
+    return chunks
+
+def remove_toc_lines(text: str) -> str:
+    lines = text.split("\n")
+
+    filtered = []
+    for line in lines:
+        # 過濾「......」目錄行
+        if re.search(r"\.{3,}", line):
+            continue
+        filtered.append(line)
+
+    return "\n".join(filtered)
 
 def clean_text(text: str) -> str:
     #移除null字元
@@ -48,5 +83,13 @@ def clean_text(text: str) -> str:
 
     #移除控制字元
     text = "".join(c for c in text if c.isprintable())
+
+     # 移除 null 字元
+    text = text.replace("\x00", "")
+
+    # 移除奇怪控制字元
+    text = "".join(c for c in text if c.isprintable())
+
+    text = remove_toc_lines(text)
 
     return text.strip()
